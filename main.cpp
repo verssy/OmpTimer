@@ -1,7 +1,11 @@
 #include <iostream>
 
-using namespace std;
+#include "omp_timer.h"
 
-int main() {
-    cout << "Hello world!" << endl;
+int main()
+{
+    TIMER;
+    for (int i = 0; i < 5; i++) {
+        INNER_TIMER;
+    }
 }
