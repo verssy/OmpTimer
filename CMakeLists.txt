@@ -6,4 +6,4 @@ find_package(OpenMP REQUIRED)
 
 add_executable(OmpTest main.cpp)
 set_target_properties(OmpTest PROPERTIES CXX_STANDARD 17)
-target_link_directories(OmpTest PUBLIC OpenMP::OpenMP_CXX)
+target_link_libraries(OmpTest PUBLIC OpenMP::OpenMP_CXX)
