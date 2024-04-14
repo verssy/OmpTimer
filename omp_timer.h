@@ -48,8 +48,8 @@ private:
     const std::string name;
     const bool isInner;
     const clock::time_point start;
-
     static inline int64_t timerDepth = 0;
+#pragma omp threadprivate(timerDepth)
 };
 
 #define CONCAT2(a, b) a##b
