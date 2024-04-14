@@ -2,4 +2,4 @@
 
 1. `mkdir build`
 2. `make`
-3. `make run`
+3. `OMP_NUM_THREADS=4 make run`
