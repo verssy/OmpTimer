@@ -1,5 +1,5 @@
-## Make
+## Make and Run
 
-mkdir build<br>
-cd build<br>
-cmake .. && make && ./OmpTest<br>
+1. `mkdir build`
+2. `make`
+3. `make run`
