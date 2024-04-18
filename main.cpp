@@ -6,23 +6,58 @@
 
 #include "omp_timer.h"
 
-const int64_t numThreads = std::getenv("OMP_NUM_THREADS") ? std::min(omp_get_max_threads(), std::atoi(std::getenv("OMP_NUM_THREADS"))) : 1;
-
 void Work()
 {
     using namespace std::chrono_literals;
-    std::this_thread::sleep_for(3s);
+    std::this_thread::sleep_for(300ms);
+}
+
+// Temporary wrapper instead of unrealized method:
+//   OmpTimer::Stop()
+struct OmpTimerHandler {
+    ~OmpTimerHandler()
+    {
+        printf("TIMER MEASUREMENTS:\n");
+        OmpTimer::PrintDurations();
+    }
+} __ompTimerHandler;
+
+void RecursiveTest(const int64_t depth = 3)
+{
+    INNER_TIMER(RecursiveFunc);
+
+    if (depth > 0) {
+        Work();
+        RecursiveTest(depth - 1);
+    }
+}
+
+void InnerFunctionCallTest()
+{
+    INNER_TIMER(InnerFunctionCallFunc);
+    Work();
+}
+
+void Test()
+{
+    printf(
+        "EXPECTED:\n"
+        "Main=1.5s\n"
+        " |-Test=1.2s\n"
+        " | |-RecursiveFunc=0.9s\n"
+        " | |-InnerFunctionCallFunc=0.3s\n\n");
+
+    INNER_TIMER(Test);
+
+    RecursiveTest();
+    InnerFunctionCallTest();
 }
 
 int main()
 {
-    TIMER(main);
-    Work();
-#pragma omp parallel for num_threads(numThreads)
-    for (int i = 0; i < 5; i++) {
-        INNER_TIMER(for);
-        Work();
-    }
+    TIMER(Main);
+
+    Test();
 
     Work();
 }

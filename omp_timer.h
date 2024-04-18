@@ -1,61 +1,111 @@
 #ifndef OMP_TIMER_H
 #define OMP_TIMER_H
 
+#include <algorithm>
 #include <chrono>
+#include <deque>
 #include <iostream>
+#include <map>
+#include <set>
 #include <string>
 
 class OmpTimer
 {
+private:
+    struct Node {
+        int64_t line;
+        std::set<Node> childLines;
+
+        Node() = default;
+
+        bool operator<(const Node& another) const
+        {
+            return line < another.line;
+        }
+    };
+
+    static inline Node root;
+    static inline std::deque<int64_t> timersChain{ };
+
+    static inline std::map<int64_t, int64_t> lineToTime;
+    static inline std::map<int64_t, std::string> lineToName;
+
 public:
-    OmpTimer(const std::string name, const bool isInner)
-        : name(name), isInner(isInner), start(clock::now())
+    OmpTimer(const std::string name, const bool isInner, const int64_t line)
+        : name(name), isInner(isInner), line(line), start(clock::now())
     {
-        if (isInner) {
-            timerDepth++;
+        if (fallInRecursion = std::find(timersChain.begin(), timersChain.end(), line) != timersChain.end()) {
+            return;
         }
 
-        printf("|%s %s [START]\n", std::string(2 * timerDepth, '-').c_str(), name.c_str());
+        lineToName[line] = name;
+        Node* node = &root;
+        Node* prev = &root;
+        for (auto& i : timersChain) {
+            prev = node;
+            node = const_cast<Node*>(&*node->childLines.insert(Node{ i }).first);
+        }
+
+        if (isInner || node == &root) {
+            node->childLines.insert(Node{ line });
+            timersChain.push_back(line);
+        } else {
+            prev->childLines.insert(Node{ line });
+        }
     }
 
     ~OmpTimer()
     {
-        printf("|%s %s [END] = %lfs\n", std::string(2 * timerDepth, '-').c_str(), name.c_str(),
-            durca<std::chrono::nanoseconds>());
+        if (fallInRecursion) {
+            return;
+        }
+
         if (isInner) {
-            timerDepth--;
+            timersChain.pop_back();
+        }
+
+        lineToTime[line] += std::chrono::duration_cast<std::chrono::microseconds>(clock::now() - start).count();
+    }
+
+    static void PrintDurations()
+    {
+        Traverse(-1, &root);
+    }
+
+private:
+    static void Traverse(const int64_t depth, const Node* ptr)
+    {
+        if (depth > 0) {
+            for (int64_t i = 0; i < depth; i++) {
+                printf(" |");
+            }
+
+            printf("-");
+        }
+
+        if (ptr->line > 0) {
+            printf("%s=%lfs.\n", lineToName[ptr->line].c_str(), lineToTime[ptr->line] / 1e6);
+        }
+
+        for (auto &i : ptr->childLines) {
+            Traverse(depth + 1, &i);
         }
     }
 
-private:
-    template<typename DurationUnit>
-    double durca()
-    {
-        using namespace std::chrono;
-
-        constexpr double multiplier =
-            std::is_same_v<std::chrono::seconds, DurationUnit> ? 1
-            : std::is_same_v<std::chrono::milliseconds, DurationUnit> ? 1e-3
-            : std::is_same_v<std::chrono::microseconds, DurationUnit> ? 1e-6
-            : 1e-9;
-
-        return duration_cast<DurationUnit>(clock::now() - start).count() * multiplier;
-    }
-
-private:
     using clock = std::chrono::high_resolution_clock;
 
     const std::string name;
     const bool isInner;
+    const int64_t line;
     const clock::time_point start;
-    static inline int64_t timerDepth = 0;
-#pragma omp threadprivate(timerDepth)
+
+    bool fallInRecursion = false;
 };
 
 #define CONCAT2(a, b) a##b
 #define CONCAT(a, b) CONCAT2(a, b)
-#define CREATE_TIMER(timerVariableName, timerName, isInner) timerVariableName(timerName, isInner)
-#define TIMER(name) OmpTimer CREATE_TIMER(CONCAT(__local_timer_, __LINE__), #name, false)
-#define INNER_TIMER(name) OmpTimer CREATE_TIMER(CONCAT(__local_timer_, __LINE__), #name, true)
+#define CREATE_TIMER(timerVariableName, timerName, isInner, line) timerVariableName(timerName, isInner, line)
+#define TIMER(name) OmpTimer CREATE_TIMER(CONCAT(__local_timer_, __LINE__), #name, false, __LINE__)
+#define INNER_TIMER(name) OmpTimer CREATE_TIMER(CONCAT(__local_timer_, __LINE__), #name, true, __LINE__)
 
-#endif
+#endif // OMP_TIMER_H
