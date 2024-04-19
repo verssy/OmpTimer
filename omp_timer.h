@@ -9,8 +9,7 @@
 #include <set>
 #include <string>
 
-class OmpTimer
-{
+class OmpTimer {
 private:
     struct Node {
         int64_t line;
@@ -18,14 +17,14 @@ private:
 
         Node() = default;
 
-        bool operator<(const Node& another) const
+        bool operator<(const Node &another) const
         {
             return line < another.line;
         }
     };
 
     static inline Node root;
-    static inline std::deque<int64_t> timersChain{ };
+    static inline std::deque<int64_t> timersChain;
 
     static inline std::map<int64_t, int64_t> lineToTime;
     static inline std::map<int64_t, std::string> lineToName;
@@ -34,23 +33,24 @@ public:
     OmpTimer(const std::string name, const bool isInner, const int64_t line)
         : name(name), isInner(isInner), line(line), start(clock::now())
     {
-        if (fallInRecursion = std::find(timersChain.begin(), timersChain.end(), line) != timersChain.end()) {
+        if (fallInRecursion =
+                std::find(timersChain.begin(), timersChain.end(), line) != timersChain.end()) {
             return;
         }
 
         lineToName[line] = name;
-        Node* node = &root;
-        Node* prev = &root;
-        for (auto& i : timersChain) {
+        Node *node = &root;
+        Node *prev = &root;
+        for (auto &i : timersChain) {
             prev = node;
-            node = const_cast<Node*>(&*node->childLines.insert(Node{ i }).first);
+            node = const_cast<Node *>(&*node->childLines.insert(Node{i}).first);
         }
 
         if (isInner || node == &root) {
-            node->childLines.insert(Node{ line });
+            node->childLines.insert(Node{line});
             timersChain.push_back(line);
         } else {
-            prev->childLines.insert(Node{ line });
+            prev->childLines.insert(Node{line});
         }
     }
 
@@ -64,7 +64,8 @@ public:
             timersChain.pop_back();
         }
 
-        lineToTime[line] += std::chrono::duration_cast<std::chrono::microseconds>(clock::now() - start).count();
+        lineToTime[line] +=
+            std::chrono::duration_cast<std::chrono::microseconds>(clock::now() - start).count();
     }
 
     static void PrintDurations()
@@ -73,7 +74,7 @@ public:
     }
 
 private:
-    static void Traverse(const int64_t depth, const Node* ptr)
+    static void Traverse(const int64_t depth, const Node *ptr)
     {
         if (depth > 0) {
             for (int64_t i = 0; i < depth; i++) {
@@ -104,8 +105,10 @@ private:
 
 #define CONCAT2(a, b) a##b
 #define CONCAT(a, b) CONCAT2(a, b)
-#define CREATE_TIMER(timerVariableName, timerName, isInner, line) timerVariableName(timerName, isInner, line)
+#define CREATE_TIMER(timerVariableName, timerName, isInner, line) \
+    timerVariableName(timerName, isInner, line)
 #define TIMER(name) OmpTimer CREATE_TIMER(CONCAT(__local_timer_, __LINE__), #name, false, __LINE__)
-#define INNER_TIMER(name) OmpTimer CREATE_TIMER(CONCAT(__local_timer_, __LINE__), #name, true, __LINE__)
+#define INNER_TIMER(name) \
+    OmpTimer CREATE_TIMER(CONCAT(__local_timer_, __LINE__), #name, true, __LINE__)
 
-#endif // OMP_TIMER_H
+#endif  // OMP_TIMER_H
