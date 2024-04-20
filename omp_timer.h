@@ -70,11 +70,11 @@ public:
 
     static void PrintDurations()
     {
-        Traverse(-1, &root);
+        Traverse(&root);
     }
 
 private:
-    static void Traverse(const int64_t depth, const Node *ptr)
+    static void Traverse(const Node *ptr, const int64_t depth = -1)
     {
         if (depth > 0) {
             for (int64_t i = 0; i < depth; i++) {
@@ -89,7 +89,7 @@ private:
         }
 
         for (auto &i : ptr->childLines) {
-            Traverse(depth + 1, &i);
+            Traverse(&i, depth + 1);
         }
     }
 
