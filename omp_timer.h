@@ -11,6 +11,8 @@
 
 class OmpTimer {
 private:
+    using clock = std::chrono::high_resolution_clock;
+
     struct Node {
         int64_t line;
         std::set<Node> childLines;
@@ -30,11 +32,12 @@ private:
     static inline std::map<int64_t, std::string> lineToName;
 
 public:
-    OmpTimer(const std::string name, const bool isInner, const int64_t line)
+    OmpTimer(const std::string &name, const bool isInner, const int64_t line)
         : name(name), isInner(isInner), line(line), start(clock::now())
     {
-        if (fallInRecursion =
-                std::find(timersChain.begin(), timersChain.end(), line) != timersChain.end()) {
+        fallInRecursion =
+            std::find(timersChain.begin(), timersChain.end(), line) != timersChain.end();
+        if (fallInRecursion) {
             return;
         }
 
@@ -92,8 +95,6 @@ private:
             Traverse(&i, depth + 1);
         }
     }
-
-    using clock = std::chrono::high_resolution_clock;
 
     const std::string name;
     const bool isInner;
