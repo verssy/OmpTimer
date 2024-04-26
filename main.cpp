@@ -24,8 +24,7 @@ struct OmpTimerHandler {
 
 void RecursiveTest(const int64_t depth = 3)
 {
-    INNER_TIMER(RecursiveFunc);
-
+    OmpTimer timer("RecursiveFunc", true, __LINE__);
     if (depth > 0) {
         Work();
         RecursiveTest(depth - 1);
@@ -34,7 +33,7 @@ void RecursiveTest(const int64_t depth = 3)
 
 void InnerFunctionCallTest()
 {
-    INNER_TIMER(InnerFunctionCallFunc);
+    OmpTimer timer("InnerFunctionCallFunc", true, __LINE__);
     Work();
 }
 
@@ -47,7 +46,7 @@ void Test()
         " | |-RecursiveFunc=0.9s\n"
         " | |-InnerFunctionCallFunc=0.3s\n\n");
 
-    INNER_TIMER(Test);
+    OmpTimer timer("Test", true, __LINE__);
 
     RecursiveTest();
     InnerFunctionCallTest();
@@ -55,7 +54,7 @@ void Test()
 
 int main()
 {
-    TIMER(Main);
+    OmpTimer timer("Main", false, __LINE__);
 
     Test();
 

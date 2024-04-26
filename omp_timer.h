@@ -55,11 +55,18 @@ public:
         } else {
             prev->childLines.insert(Node{line});
         }
+
+        isRunning = true;
     }
 
     ~OmpTimer()
     {
-        if (fallInRecursion) {
+        Stop();
+    }
+
+    void Stop()
+    {
+        if (fallInRecursion || !isRunning) {
             return;
         }
 
@@ -69,6 +76,8 @@ public:
 
         lineToTime[line] +=
             std::chrono::duration_cast<std::chrono::microseconds>(clock::now() - start).count();
+
+        isRunning = false;
     }
 
     static void PrintDurations()
@@ -102,14 +111,7 @@ private:
     const clock::time_point start;
 
     bool fallInRecursion = false;
+    bool isRunning = false;
 };
-
-#define CONCAT2(a, b) a##b
-#define CONCAT(a, b) CONCAT2(a, b)
-#define CREATE_TIMER(timerVariableName, timerName, isInner, line) \
-    timerVariableName(timerName, isInner, line)
-#define TIMER(name) OmpTimer CREATE_TIMER(CONCAT(__local_timer_, __LINE__), #name, false, __LINE__)
-#define INNER_TIMER(name) \
-    OmpTimer CREATE_TIMER(CONCAT(__local_timer_, __LINE__), #name, true, __LINE__)
 
 #endif  // OMP_TIMER_H
