@@ -12,19 +12,9 @@ void Work()
     std::this_thread::sleep_for(300ms);
 }
 
-// Temporary wrapper instead of unrealized method:
-//   OmpTimer::Stop()
-struct OmpTimerHandler {
-    ~OmpTimerHandler()
-    {
-        printf("TIMER MEASUREMENTS:\n");
-        OmpTimer::PrintDurations();
-    }
-} __ompTimerHandler;
-
 void RecursiveTest(const int64_t depth = 3)
 {
-    OmpTimer timer("RecursiveFunc", true, __LINE__);
+    OmpTimer timer("RecursiveFunc", true);
     if (depth > 0) {
         Work();
         RecursiveTest(depth - 1);
@@ -33,7 +23,7 @@ void RecursiveTest(const int64_t depth = 3)
 
 void InnerFunctionCallTest()
 {
-    OmpTimer timer("InnerFunctionCallFunc", true, __LINE__);
+    OmpTimer timer("InnerFunctionCallFunc", true);
     Work();
 }
 
@@ -46,7 +36,7 @@ void Test()
         " | |-RecursiveFunc=0.9s\n"
         " | |-InnerFunctionCallFunc=0.3s\n\n");
 
-    OmpTimer timer("Test", true, __LINE__);
+    OmpTimer timer("Test", true);
 
     RecursiveTest();
     InnerFunctionCallTest();
@@ -54,9 +44,12 @@ void Test()
 
 int main()
 {
-    OmpTimer timer("Main", false, __LINE__);
+    OmpTimer timer("Main", false);
 
     Test();
-
     Work();
+    timer.Stop();
+
+    printf("TIMER MEASUREMENTS:\n");
+    OmpTimer::PrintDurations();
 }

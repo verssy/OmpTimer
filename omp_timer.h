@@ -32,7 +32,7 @@ private:
     static inline std::map<int64_t, std::string> lineToName;
 
 public:
-    OmpTimer(const std::string &name, const bool isInner, const int64_t line)
+    OmpTimer(const std::string &name, const bool isInner, const int64_t line = __builtin_LINE())
         : name(name), isInner(isInner), line(line), start(clock::now())
     {
         fallInRecursion =
