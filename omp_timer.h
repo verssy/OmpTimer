@@ -85,6 +85,14 @@ public:
         Traverse(&root);
     }
 
+    static void Reset()
+    {
+        root.childLines.clear();
+        timersChain.clear();
+        lineToTime.clear();
+        lineToName.clear();
+    }
+
 private:
     static void Traverse(const Node *ptr, const int64_t depth = -1)
     {
