@@ -46,14 +46,14 @@ public:
         Node *prev = &root;
         for (auto &i : timersChain) {
             prev = node;
-            node = const_cast<Node *>(&*node->childLines.insert(Node{i}).first);
+            node = const_cast<Node *>(&*node->childLines.insert(Node{ i }).first);
         }
 
         if (isInner || node == &root) {
-            node->childLines.insert(Node{line});
+            node->childLines.insert(Node{ line });
             timersChain.push_back(line);
         } else {
-            prev->childLines.insert(Node{line});
+            prev->childLines.insert(Node{ line });
         }
 
         isRunning = true;
