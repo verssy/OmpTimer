@@ -7,6 +7,7 @@
 #include <iostream>
 #include <map>
 #include <set>
+#include <source_location>
 #include <string>
 
 class OmpTimer {
@@ -18,6 +19,8 @@ private:
         std::set<Node> childLines;
 
         Node() = default;
+        Node(int64_t line) : line(line)
+        { }
 
         bool operator<(const Node &another) const
         {
@@ -32,8 +35,9 @@ private:
     static inline std::map<int64_t, std::string> lineToName;
 
 public:
-    OmpTimer(const std::string &name, const bool isInner, const int64_t line = __builtin_LINE())
-        : name(name), isInner(isInner), line(line), start(clock::now())
+    OmpTimer(const std::string &name, const bool isInner,
+             const std::source_location location = std::source_location::current())
+        : name(name), isInner(isInner), line(location.line()), start(clock::now())
     {
         fallInRecursion =
             std::find(timersChain.begin(), timersChain.end(), line) != timersChain.end();

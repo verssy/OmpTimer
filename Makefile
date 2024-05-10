@@ -1,4 +1,4 @@
-CXX_FLAGS=-std=c++17 -fopenmp -O2
+CXX_FLAGS=-std=c++20 -fopenmp -O2
 EXECUTABLE=main
 TEST_EXECUTABLE=test
 BUILD_DIR=build
